@@ -1,7 +1,10 @@
 # Syma 107 Arduino Helicopter
 
 ## Installation
+Do not use, this software is pre-pre-alpha, IE I haven't even got the chance to test it yet.
+
 	git clone git://github.com/tomgallacher/Arduino_Helicopter.git
+
 Open in Arduino Ide or use avrdude, what ever you beef compile and upload to your device.
 
 ## Preface 
