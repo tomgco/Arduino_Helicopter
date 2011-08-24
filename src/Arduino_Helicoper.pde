@@ -12,7 +12,7 @@ void setup() {
 	Serial.println("");
 }
 
-void pulseIR(long μs) {
+void sendPulse(long μs) {
 	cli(); //turns off back ground interrupts
 
 	while(μs > 0) {
@@ -42,62 +42,30 @@ void sendControlPacket(byte yaw, byte pitch, byte throttle, byte trim) {
 	markL = 77; // 2000 / 26  == 76.9
 	dataPointer = 4;
 	maskPointer = 9;
-	one = 0; // might not need
-	zero = 0; // might not need
 	hasData = true;
 
-	while(markL--) {
-		// Start 38Khz pulse for 2000us
-		digitalWrite(LED,LOW); //3 microseconds
-		delayMicroseconds(10); //10 microseconds
-		digitalWrite(LED, HIGH);
-		delayMicroseconds(10);
-		// 26 microseconds
-	}
+	// Start 38Khz pulse for 2000us
+	sendPulse(2000);
 
 	// 2000us off.
 	delayMicroseconds(1998);
 
-	markL = 12;
-
-	while(hasData) {
-		while(markL--) {
-			digitalWrite(LED, LOW);
-			delayMicroseconds(10);
-			digitalWrite(LED, HIGH);
-			delayMicroseconds(10);
-		}
-		//2336 microseconds
-
-		markL = 12;
+	while(dataPointer > 0) {
+		sendPulse(320)	//312 originally although this is more of an average
 
 		if(data[4 - dataPointer] & mask[--maskPointer]) {
-			one++;
-			delayMicroseconds(688);
+			delayMicroseconds(688); // send 1
 		} else {
-			zero++;
-			delayMicroseconds(288);
+			delayMicroseconds(288); // send 0
 		}
 
-		if(!maskPointer) {
-			maskPointer = 9;
-			dataPointer--;
-		}
-
-		if(!dataPointer) {
-			hasData = false;
+		if(maskPointer == 0) {
+			maskPointer = 9; // reset mask
+			dataPointer--; // decrement pointer in data byte array
 		}
 	}
 
-	while(markL--) {
-		digitalWrite(LED, LOW);
-		delayMicroseconds(10);
-		digitalWrite(LED, HIGH);
-		delayMicroseconds(10);
-	}
-	//2336 microseconds
-
-	/*return((.1 - .014296 - one * .000688 - zero * .000288) * 1000); // in ms.*/
+	sendPulse(320);
 }
 
 void loop() {
