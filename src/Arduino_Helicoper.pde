@@ -11,7 +11,7 @@ void setup() {
 	Serial.begin(9600); // setup serial communication
 	Serial.println("");
 }
-
+//sends 38Khz pulse when using a 16Mhz ic
 void sendPulse(long μs) {
 	cli(); //turns off back ground interrupts
 
@@ -30,19 +30,17 @@ void sendPulse(long μs) {
 * Start of transmission is a 2000μs on, 2000μsoff.
 */
 void sendControlPacket(byte yaw, byte pitch, byte throttle, byte trim) {
-	static byte markL, dataPointer, maskPointer, one, zero;
-	static bool hasData;
+	static byte dataPointer, maskPointer;
 	static const byte mask[] = {1, 2, 4, 8, 16, 32, 64, 128, 256};
 	static byte data[4];
 
+	// Control bytes.
 	data[0] = yaw; // 0 -> 127 where 63 is the mid point.
 	data[1] = pitch; // ditto
 	data[2] = throttle; // Channel 1 = 0 -> 127 & Channel 2 = 0 -> 127
 	data[3] = trim;
-	markL = 77; // 2000 / 26  == 76.9
 	dataPointer = 4;
 	maskPointer = 9;
-	hasData = true;
 
 	// Start 38Khz pulse for 2000us
 	sendPulse(2000);
@@ -54,9 +52,9 @@ void sendControlPacket(byte yaw, byte pitch, byte throttle, byte trim) {
 		sendPulse(320)	//312 originally although this is more of an average
 
 		if(data[4 - dataPointer] & mask[--maskPointer]) {
-			delayMicroseconds(688); // send 1
+			delayMicroseconds(688); // send 1 - possibly 600
 		} else {
-			delayMicroseconds(288); // send 0
+			delayMicroseconds(288); // send 0 - possibly 300
 		}
 
 		if(maskPointer == 0) {
@@ -71,8 +69,7 @@ void sendControlPacket(byte yaw, byte pitch, byte throttle, byte trim) {
 void loop() {
 
 	static int i;
-	int delayinus = 0;
-
+	// Just for testing, will be adding a serial read to determine the command.
 	while(!finished) {
 		//send 0->127 on throttle for channel 1 and
 		// 128->254 for channel 2
