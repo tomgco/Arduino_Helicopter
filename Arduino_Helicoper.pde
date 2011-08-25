@@ -9,29 +9,37 @@ void setup() {
 	digitalWrite(LED, HIGH);
 	finished = false;
 	Serial.begin(9600); // setup serial communication
-	Serial.println("");
+
 }
 //sends 38Khz pulse when using a 16Mhz ic
-void sendPulse(long μs) {
-	cli(); //turns off back ground interrupts
-
-	while(μs > 0) {
-		digitalWrite(LED,LOW); //3 microseconds
-		delayMicroseconds(10); //10 microseconds
-		digitalWrite(LED, HIGH);
-		delayMicroseconds(10);
-		μs -= 26; // 26μs in total
+void sendPulse(long us) {
+	for(int i = 0; i < (us / 26) - 1; i++) {
+		 digitalWrite(LED, HIGH);
+		 delayMicroseconds(10);
+		 digitalWrite(LED, LOW);
+		 delayMicroseconds(10);
 	}
+}
 
-	sei(); // turns on interrupts
+void sendHeader() {
+	// Start 38Khz pulse for 2000us
+	sendPulse(2002);
+
+	// 2000us off.
+	delayMicroseconds(1998);
+}
+
+void sendFooter() {
+	sendPulse(312);
+	delayMicroseconds(80);
 }
 
 /*
-* Start of transmission is a 2000μs on, 2000μsoff.
+* Start of transmission is a 2000us on, 2000us off.
 */
 void sendControlPacket(byte yaw, byte pitch, byte throttle, byte trim) {
 	static byte dataPointer, maskPointer;
-	static const byte mask[] = {1, 2, 4, 8, 16, 32, 64, 128, 256};
+	static const byte mask[] = {1, 2, 4, 8, 16, 32, 64, 128};
 	static byte data[4];
 
 	// Control bytes.
@@ -39,17 +47,14 @@ void sendControlPacket(byte yaw, byte pitch, byte throttle, byte trim) {
 	data[1] = pitch; // ditto
 	data[2] = throttle; // Channel 1 = 0 -> 127 & Channel 2 = 0 -> 127
 	data[3] = trim;
+
 	dataPointer = 4;
-	maskPointer = 9;
+	maskPointer = 8;
 
-	// Start 38Khz pulse for 2000us
-	sendPulse(2000);
-
-	// 2000us off.
-	delayMicroseconds(1998);
+	sendHeader();
 
 	while(dataPointer > 0) {
-		sendPulse(320)	//312 originally although this is more of an average
+		sendPulse(312);	
 
 		if(data[4 - dataPointer] & mask[--maskPointer]) {
 			delayMicroseconds(688); // send 1 - possibly 600
@@ -57,32 +62,29 @@ void sendControlPacket(byte yaw, byte pitch, byte throttle, byte trim) {
 			delayMicroseconds(288); // send 0 - possibly 300
 		}
 
-		if(maskPointer == 0) {
-			maskPointer = 9; // reset mask
+		if(!maskPointer) {
+			maskPointer = 8; // reset mask
 			dataPointer--; // decrement pointer in data byte array
 		}
 	}
 
-	sendPulse(320);
+	sendFooter();
 }
 
 void loop() {
 
 	static int i;
-	// Just for testing, will be adding a serial read to determine the command.
 	while(!finished) {
-		//send 0->127 on throttle for channel 1 and
-		// 128->254 for channel 2
-		for(i = 128; i < 255; i++) {
-			sendPacket(63, 63, i, 63);
-			delay(65);
+
+		for(i = 0; i < 120; i++) {
+			sendControlPacket(63, 63, i, 63);
 		}
 
-		for(i = 0; i < 128; i++) {
-			sendPacket(63, 63, i, 63);
-			delay(65);
+		for(i = 1; i > 0; --i) {
+			sendControlPacket(63, 63, i, 63);
 		}
 
 		finished = true;
 	}
 }
+
