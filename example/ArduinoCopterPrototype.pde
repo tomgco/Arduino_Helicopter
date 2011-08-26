@@ -77,7 +77,7 @@ void sendControlPacket(byte yaw, byte pitch, byte throttle, byte trim) {
 
 void loop() {
         int incomingByte = 0;
-	/* The Reall Stuff. */
+	/* The Reall Stuff.
 	if (Serial.available() > 0) {
 		incomingByte = Serial.read();
                   Serial.println("Hello");
@@ -90,7 +90,9 @@ void loop() {
 				 delay(500);
 			}
 	}
-	/*
+
+	*/
+
 	static int i;
 	while(!finished) {
 
@@ -104,6 +106,5 @@ void loop() {
 
 		finished = true;
 	}
-	*/
 }
 
