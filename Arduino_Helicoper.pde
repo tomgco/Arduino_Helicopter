@@ -13,7 +13,7 @@ void setup() {
 	digitalWrite(STATUS, LOW);
 	finished = false;
 	handshakeComplete = false;
-	Serial.begin(9600); // setup serial communication
+	Serial.begin(300); // setup serial communication we will start at 300 baud
 }
 //sends 38Khz pulse when using a 16Mhz ic
 void sendPulse(long us) {
@@ -45,7 +45,6 @@ void sendControlPacket(byte yaw, byte pitch, byte throttle, byte trim) {
 	static byte dataPointer, maskPointer;
 	static const byte mask[] = {1, 2, 4, 8, 16, 32, 64, 128};
 	static byte data[4];
-
 	// Control bytes.
 	data[0] = yaw; // 0 -> 127 where 63 is the mid point.
 	data[1] = pitch; // ditto
@@ -76,19 +75,16 @@ void sendControlPacket(byte yaw, byte pitch, byte throttle, byte trim) {
 }
 
 void loop() {
-        int incomingByte = 0;
-	/* The Reall Stuff. */
-	if (Serial.available() > 0) {
-		incomingByte = Serial.read();
-                  Serial.println("Hello");
-			handshakeComplete = true;
-			int flash = 1;
-			while (flash-- > 0) {
-				 digitalWrite(STATUS, HIGH);
-				 delay(500);
-				 digitalWrite(STATUS, LOW);
-				 delay(500);
-			}
+	int incomingByte = 0;
+	/* The Real Stuff. */
+
+	if (Serial.available() > 5) {
+  
+		if (Serial.read() == 0x4C && Serial.read() == 0x4F) {
+			sendControlPacket(Serial.read(), Serial.read(), Serial.read(), Serial.read());
+		}
+	} else {
+		/*sendControlPacket(63, 63, 50 [> channelCode <], 63);*/
 	}
 	/*
 	static int i;
