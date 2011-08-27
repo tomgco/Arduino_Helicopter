@@ -46,10 +46,10 @@ void sendControlPacket(byte yaw, byte pitch, byte throttle, byte trim) {
 	static const byte mask[] = {1, 2, 4, 8, 16, 32, 64, 128};
 	static byte data[4];
 	// Control bytes.
-	data[0] = yaw; // 0 -> 127 where 63 is the mid point.
-	data[1] = pitch; // ditto
-	data[2] = throttle; // Channel 1 = 0 -> 127 & Channel 2 = 0 -> 127
-	data[3] = trim;
+	data[0] = yaw - 1; // 0 -> 127 where 63 is the mid point.
+	data[1] = pitch - 1; // ditto
+	data[2] = throttle - 1; // Channel 1 = 0 -> 127 & Channel 2 = 0 -> 127
+	data[3] = trim - 1;
 
 	dataPointer = 4;
 	maskPointer = 8;
