@@ -41,7 +41,7 @@ void sendFooter() {
 /*
 * Start of transmission is a 2000us on, 2000us off.
 */
-void sendControlPacket(byte yaw, byte pitch, byte throttle, byte trim) {
+void sendControlPacket(byte channel, byte yaw, byte pitch, byte throttle, byte trim) {
 	static byte dataPointer, maskPointer;
 	static const byte mask[] = {1, 2, 4, 8, 16, 32, 64, 128};
 	static byte data[4];
@@ -50,9 +50,11 @@ void sendControlPacket(byte yaw, byte pitch, byte throttle, byte trim) {
 	data[1] = pitch - 1; // ditto
 	data[2] = throttle - 1; // Channel 1 = 0 -> 127 & Channel 2 = 0 -> 127
 	data[3] = trim - 1;
-
 	dataPointer = 4;
 	maskPointer = 8;
+	if (channel == 0x32) {
+		data[2] = data[2] + 128; //as channel 2 is 128 -> 255
+	}
 
 	sendHeader();
 
@@ -79,9 +81,9 @@ void loop() {
 	/* The Real Stuff. */
 
 	if (Serial.available() > 5) {
-  
 		if (Serial.read() == 0x4C && Serial.read() == 0x4F) {
-			sendControlPacket(Serial.read(), Serial.read(), Serial.read(), Serial.read());
+			Serial.println(); // Flash arduino TX light
+			sendControlPacket(Serial.read(), Serial.read(), Serial.read(), Serial.read(), Serial.read());
 		}
 	} else {
 		/*sendControlPacket(63, 63, 50 [> channelCode <], 63);*/
