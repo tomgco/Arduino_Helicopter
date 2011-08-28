@@ -13,7 +13,7 @@ void setup() {
 	digitalWrite(STATUS, LOW);
 	finished = false;
 	handshakeComplete = false;
-	Serial.begin(1200); // setup serial communication we will start at 300 baud
+	Serial.begin(300); // setup serial communication we will start at 300 baud
 }
 //sends 38Khz pulse when using a 16Mhz ic
 void sendPulse(long us) {
@@ -80,28 +80,11 @@ void loop() {
 	int incomingByte = 0;
 	/* The Real Stuff. */
 
-	if (Serial.available() > 5) {
-		if (Serial.read() == 0x4C && Serial.read() == 0x4F) {
-			Serial.println(); // Flash arduino TX light
-			sendControlPacket(Serial.read(), Serial.read(), Serial.read(), Serial.read(), Serial.read());
-		}
-	} else {
-		/*sendControlPacket(63, 63, 50 [> channelCode <], 63);*/
+	while (Serial.available() < 6) {}
+	
+	if (Serial.read() == 0x4C && Serial.read() == 0x4F) {
+		//Serial.println("!"); // Flash arduino TX light
+		sendControlPacket(Serial.read(), Serial.read(), Serial.read(), Serial.read(), Serial.read());
 	}
-	/*
-	static int i;
-	while(!finished) {
-
-		for(i = 30; i < 90; i++) {
-			sendControlPacket(63, 63, i, 63);
-		}
-
-		for(i = 90; i > 0; --i) {
-			sendControlPacket(63, 63, i, 63);
-		}
-
-		finished = true;
-	}
-	*/
 }
 
