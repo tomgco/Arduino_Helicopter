@@ -13,7 +13,7 @@ void setup() {
 	digitalWrite(STATUS, LOW);
 	finished = false;
 	handshakeComplete = false;
-	Serial.begin(300); // setup serial communication we will start at 300 baud
+	Serial.begin(1200); // setup serial communication we will start at 300 baud
 }
 //sends 38Khz pulse when using a 16Mhz ic
 void sendPulse(long us) {
